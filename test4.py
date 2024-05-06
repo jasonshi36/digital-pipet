@@ -211,7 +211,6 @@ def refill_pump():
 # 测试运行
 try:
    
-   refill_pump()
    dispense_liquid(300, 'A1')
    dispense_liquid(300, 'B1')
    dispense_liquid(300, 'C1')
