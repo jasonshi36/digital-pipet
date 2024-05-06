@@ -139,7 +139,7 @@ volume_list = {
    '1mL' : 65
 }
 # Counter for adjusting pump length
-counter = 0
+counter = 1
 
 # Function to perform MyCobot movement
 def move_mycobot(angles, speed, wait_time):
@@ -160,11 +160,12 @@ def calculate_length():
 # Function to dispense liquid
 def dispense_liquid(volume, position):
     global counter, refill_statu
-    c_length = ser.readline
-    if c_length> 1800:
+   
+    if 1300 + counter * volume > 1800:
         print("Liquid empty. Moving to liquid suction position.")
         refill_pump()
         refill_statu = 1
+        return True
         
     move_mycobot(angles_list[position], 20, 2)
     if refill_statu == 1:
@@ -209,7 +210,7 @@ def refill_pump():
 # 测试运行
 try:
    
-   
+   refill_pump()
    dispense_liquid('300uL', 'A1')
    dispense_liquid('300uL', 'B1')
    dispense_liquid('300uL', 'C1')
@@ -321,4 +322,3 @@ try:
 finally:
     # Close the serial ports
     ser.close()
-
