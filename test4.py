@@ -165,7 +165,7 @@ def dispense_liquid(volume, position):
         print("Liquid empty. Moving to liquid suction position.")
         refill_pump()
         refill_statu = 1
-        return True
+        
         
     move_mycobot(angles_list[position], 20, 2)
     if refill_statu == 1:
