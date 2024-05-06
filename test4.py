@@ -139,8 +139,8 @@ volume_list = {
    '1mL' : 65
 }
 # Counter for adjusting pump length
-counter = 1
-
+counter = 0
+refill_statu = 0
 # Function to perform MyCobot movement
 def move_mycobot(angles, speed, wait_time):
     mc.send_angles(angles, speed)
@@ -154,14 +154,14 @@ def pump_action(volume, duration):
 # Function to calculate length for given volume
 def calculate_length():
     global counter
-    return str(int(1300 + counter * volume))
+    return str(int(1300 + (45-counter) * 12))
 
     
 # Function to dispense liquid
 def dispense_liquid(volume, position):
     global counter, refill_statu
    
-    if 1300 + counter * volume > 1800:
+    if counter == 0:
         print("Liquid empty. Moving to liquid suction position.")
         refill_pump()
         refill_statu = 1
@@ -176,7 +176,7 @@ def dispense_liquid(volume, position):
     ser.write(length.encode('ascii'))
     time.sleep(2)
     print('finish '+position+' '+length)
-    counter += 1
+    counter -= 1
     return False
     
 def check_pump():
@@ -189,11 +189,12 @@ def empty_pump():
     pump_action(len_0mL, 6)
     move_mycobot(angles_list['TFA_up'], 20, 3)
     move_mycobot(angles_list['ini'], 20, 3)
+    counter = 0
 
 # Function to refill the pump with 10ml liquid
 def refill_pump():
     global counter
-    counter = 0  # Reset the counter
+    counter = 44  # Reset the counter
     print("Refilling the pump with 10ml liquid.")
     move_mycobot(angles_list['ini'], 20, 5)
     move_mycobot(angles_list['TFA_up'], 20, 3)  # Move to the position where the pump can be refilled
@@ -211,15 +212,15 @@ def refill_pump():
 try:
    
    refill_pump()
-   dispense_liquid('300uL', 'A1')
-   dispense_liquid('300uL', 'B1')
-   dispense_liquid('300uL', 'C1')
-   dispense_liquid('300uL', 'D1')
-   dispense_liquid('300uL', 'E1')
-   dispense_liquid('300uL', 'F1')
-   dispense_liquid('300uL', 'G1')
-   dispense_liquid('300uL', 'H1')
-   '''
+   dispense_liquid(300, 'A1')
+   dispense_liquid(300, 'B1')
+   dispense_liquid(300, 'C1')
+   dispense_liquid(300, 'D1')
+   dispense_liquid(300, 'E1')
+   dispense_liquid(300, 'F1')
+   dispense_liquid(300, 'G1')
+   dispense_liquid(300, 'H1')
+   
    dispense_liquid(300, 'A2')
    dispense_liquid(300, 'B2')
    dispense_liquid(300, 'C2')
@@ -316,7 +317,7 @@ try:
    dispense_liquid(300, 'F12')
    dispense_liquid(300, 'G12')
    dispense_liquid(300, 'H12')
-   '''
+   
    empty_pump()
 
 finally:
