@@ -204,3 +204,103 @@ def refill_pump():
     move_mycobot(angles_list['TFA_up'], 20, 3)
     move_mycobot(angles_list['ini'], 20, 3)
     move_mycobot(angles_list['plate_up'], 20, 3)
+    
+# 创建主窗口
+root = tk.Tk()
+root.title("Liquid Transfer System")
+
+# 函数：全选所有选项
+def select_all():
+    for _, var in hole_checkboxes:
+        var.set(True)
+
+# 函数：取消全选所有选项
+def deselect_all():
+    for _, var in hole_checkboxes:
+        var.set(False)
+# Function to select all checkboxes in a column
+def select_column(column_index):
+    for i in range(column_index * 8, (column_index + 1) * 8):
+        hole_checkboxes[i][1].set(True)
+
+# Function to deselect all checkboxes in a column
+def deselect_column(column_index):
+    for i in range(column_index * 8, (column_index + 1) * 8):
+        hole_checkboxes[i][1].set(False)
+        
+# 添加全选和取消全选按钮
+select_all_button = tk.Button(root, text="Select All", command=select_all)
+select_all_button.grid(row=3, column=1, padx=5, pady=5)
+
+deselect_all_button = tk.Button(root, text="Deselect All", command=deselect_all)
+deselect_all_button.grid(row=4, column=1, padx=5, pady=5)
+
+# 用于存储选中的孔位
+selected_holes = []
+
+# 创建96个复选框模拟96孔板
+hole_checkboxes = []
+for i in range(12):
+    column_frame = tk.Frame(root)
+    column_frame.grid(row=0, column=(i+2), padx=5, pady=5)
+    for j in range(8):
+        hole = f"{chr(65+j)}{i+1}"  # 构建孔位标识，例如 A1, B1, ..., H12
+        var = tk.BooleanVar()
+        checkbox = tk.Checkbutton(column_frame, text=hole, variable=var)
+        checkbox.pack(side=tk.TOP, padx=5)
+        hole_checkboxes.append((hole, var))
+
+    # Add Check All and Uncheck All buttons for each column
+    uncheck_button = tk.Button(column_frame, text="-", command=lambda col=i: deselect_column(col))
+    uncheck_button.pack(side=tk.BOTTOM, padx=5)
+    check_button = tk.Button(column_frame, text="+", command=lambda col=i: select_column(col))
+    check_button.pack(side=tk.BOTTOM, padx=5)
+    
+def transfer_liquid():
+
+    if selected_holes:
+        transfer_sequence = [
+            {'volume': '300uL', 'wait_time': 1800},  # 300uL, 30分钟
+            {'volume': '150uL', 'wait_time': 1800},  # 150uL, 30分钟
+            {'volume': '150uL', 'wait_time': 1800},  # 150uL, 30分钟
+            {'volume': '150uL', 'wait_time': 5400},  # 150uL, 90分钟
+            {'volume': '150uL', 'wait_time': 0}      # 150uL, 无等待时间
+        ]
+        
+        for round_num, round_data in enumerate(transfer_sequence, start=1):
+            volume = round_data['volume']
+            wait_time = round_data['wait_time']
+            print(f"Starting round {round_num} - Adding {volume} and waiting {wait_time/60} mintues...")
+            
+            for hole in selected_holes:       
+                dispense_liquid(volume, hole) 
+            
+            empty_pump()
+            if wait_time > 0:
+               print("Waiting...")
+               time.sleep(wait_time)
+            
+            print(f"Round {round_num} completed.")
+            
+            
+    else:
+        print("Please select at least one hole and a volume.")
+
+
+# 添加液体转移按钮
+transfer_button = tk.Button(root, text="TFA cleavage cocktail Transfer", command=transfer_liquid)
+transfer_button.grid(row=13, columnspan=1, pady=5)
+
+# 在复选框状态改变时更新选中的孔位列表
+def update_selected_holes():
+    selected_holes.clear()
+    for hole, var in hole_checkboxes:
+        if var.get():
+            selected_holes.append(hole)
+
+# 绑定复选框状态变化事件
+for _, var in hole_checkboxes:
+    var.trace("w", lambda *args, var=var: update_selected_holes())
+
+# 运行主循环
+root.mainloop()
